@@ -3,10 +3,12 @@ package game
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.BlendMode;
+	import flash.events.EventDispatcher;
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
 	import flash.geom.ColorTransform;
 	import flash.geom.Matrix;
+	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import flash.sampler.startSampling;
 	import flash.ui.Keyboard;
@@ -14,14 +16,19 @@ package game
 	import mx.collections.ArrayCollection;
 	import mx.utils.object_proxy;
 	
+	import game.events.ChangeScoreEvent;
+	import game.events.CollectItemEvent;
 	import game.levels.Level1;
+	import game.objects.BackgroundElement;
 	import game.objects.Bullet;
 	import game.objects.Enemy;
 	import game.objects.GameObject;
+	import game.objects.GameZOrders;
 	import game.objects.WarriorPlane;
 	import game.objects.WeaponDefinition;
 	import game.objects.interfaces.IInteractiveObject;
 	import game.utils.CollisionUtils;
+	import game.utils.GraphicsResource;
 
 	public class MainManager implements IInteractiveObject
 	{
@@ -39,6 +46,14 @@ package game
 		[Bindable]
 		public var kills:int = 0;
 		
+		[Bindable]
+		public var score:int = 0;
+		
+		[Bindable]
+		public var player:WarriorPlane = new WarriorPlane();
+		
+		// indicates displayed pickUp item
+		public var pickUpItem:BackgroundElement;
 		public var soundEnabled:Boolean = true;
 		//date for time lapse
 		private var _lastTime:Date;
@@ -48,8 +63,11 @@ package game
 		private var _insertedObjects:ArrayCollection = new ArrayCollection();
 		private var _interactiveObjects:ArrayCollection = new ArrayCollection();
 		
+		[Bindable]
 		public var playerWeapon:WeaponDefinition = Level1.inst.weapons[0];
 		public var enemyWeapon:WeaponDefinition = Level1.inst.weapons[2];
+		
+		public var eventHandler:EventDispatcher = new EventDispatcher();
 
 
 		public function MainManager()
@@ -71,7 +89,9 @@ package game
 
 			Level1.inst.startUp();
 
-			new WarriorPlane().startUpWarrior();
+			player.startUpWarrior();
+			
+			this.eventHandler.addEventListener(ChangeScoreEvent.UPDATE_SCORE, updateScore);
 		}
 
 		//adds object for rendering
@@ -236,25 +256,74 @@ package game
 			}
 		}
 		
-		
 		public function keyDown(keyCodes:Array):void
 		{
 			//additional logic here
 			
-			if(keyCodes.indexOf(Keyboard.NUMBER_1)>-1){
-				playerWeapon = Level1.inst.weapons[0];
+			if(keyCodes.indexOf(Keyboard.NUMBER_1)>-1 && playerWeapon != Level1.inst.weapons[0])
+			{
+				this.eventHandler.dispatchEvent(new CollectItemEvent(CollectItemEvent.PLAYER_WEAPON_CHANGED, Level1.inst.weapons[0]));
 			}
-			// TODO: add logic for collecting some point for second weapon to be enabled
-			// message will be displayed 
-			else if(keyCodes.indexOf(Keyboard.NUMBER_2) > -1){
-				playerWeapon = Level1.inst.weapons[1];
+			else if(keyCodes.indexOf(Keyboard.NUMBER_2) > -1 && playerWeapon != Level1.inst.weapons[1] && Level1.inst.weapons[1].collected)
+			{
+				this.eventHandler.dispatchEvent(new CollectItemEvent(CollectItemEvent.PLAYER_WEAPON_CHANGED, Level1.inst.weapons[1]));
 			}
-			
 			
 			for each (var interactive:IInteractiveObject in _interactiveObjects)
 			{
 				interactive.keyDown(keyCodes);
 			}
+		}
+		
+		/**
+		 * Calculates and updates player game score
+		 * @param ev indicates ChangeScoreEvent type
+		 * 
+		 */		
+		protected function updateScore(ev:ChangeScoreEvent):void
+		{
+			this.score += ev.isEnemyKilled ? this.playerWeapon.damage * Level1.DEFAULT_SCORE : Level1.ITEM_SCORE;
+		}
+		
+		/**
+		 * Checks if destoyed object can be replaced with pick up item.<br/> 
+		 * Pick up item can be - new weapon or ammunition reloading item
+		 * @param destroyedObject indicates game object that has been destroyed
+		 * 
+		 */			
+		public function checkForPickUpItem(destroyedObject:GameObject):void
+		{
+			var destroyedObjectPos:Point = new Point(destroyedObject.position.x, destroyedObject.position.y);
+		
+			if (this.score == Level1.PICK_UP_WEAPON_SCORE)
+			{
+				// replace enemy with new weapon item
+				insertPickUpItem(destroyedObjectPos);
+			}
+			// check if current weapon ammunition is equal to 10% of the full ammunition
+			else if (this.playerWeapon.ammunition <= this.playerWeapon.fullAmmo * 0.1 && this.kills % 5 <= 2)
+			{
+				// replace enemy with reload ammunition item 
+				insertPickUpItem(destroyedObjectPos, BackgroundElement.PICK_UP_AMMO_ITEM)
+			}
+			// replace enemy with energy pick up item
+			else if (this.player.energy <= 0.5 && this.score > Level1.PICK_UP_WEAPON_SCORE)
+			{
+				insertPickUpItem(destroyedObjectPos, BackgroundElement.PICK_UP_ENERGY_ITEM);
+			}
+		}
+		
+		/**
+		 * Adds picUp item to display stage instead of destoyed game object - killed enemy, etc.
+		 * @param position indicates killed enemy (destroyed object) position
+		 * @param type indicates pick up item type
+		 * 
+		 */		 
+		public function insertPickUpItem(position:Point, type:int = BackgroundElement.PICK_UP_WEAPON_ITEM):void
+		{
+			var graphic:GraphicsResource = BackgroundElement.getPickUpGraphicMap(type);
+			pickUpItem = BackgroundElement.pool.getItem() as BackgroundElement;
+			pickUpItem.startUp(graphic, position, GameZOrders.PLAYER, Level1.AMMO_ITEM_SPEED, CollisionUtils.COLLISION_PICK_UP_ITEM, type);
 		}
 	}
 }

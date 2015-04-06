@@ -6,6 +6,7 @@ package game.levels
 	import mx.collections.ArrayCollection;
 	import mx.utils.object_proxy;
 	
+	import game.MainManager;
 	import game.Resources;
 	import game.objects.BackgroundElement;
 	import game.objects.Enemy;
@@ -39,19 +40,24 @@ package game.levels
 		private const TIME_BETWEEN_CLOUDS_DISPLAY:int = 2.5;
 		private const TIME_BETWEEN_ENEMIES:int = 2;
 		
+		public static const DEFAULT_SCORE:int = 20;
+		public static const ITEM_SCORE:int = 10;
+		public static const PICK_UP_WEAPON_SCORE:int = 90;
+		public static const PICK_UP_HELP_SCORE:int = 160;
+		
 		private var timeToNextElement:Number = 0;
 		private var timeToNextCloud:Number = 0;
 		private var timeToNextEnemy:Number = 0;
 		
-		
 		public static const BACKGROUND_SPEED:Number = 40;
+		public static const PICK_UP_ITEM_SPEED:Number = 60;
 		public static const UPPER_CLOUD_SPEED:Number = 90;
 		public static const LOWER_CLOUD_SPEED:Number = 70;
 		
 		public var weapons:Array = [
-			new WeaponDefinition(Resources.RoundBullets, 7, 1.3, Resources.GunSound2, WeaponDefinition.ENEMY_MEDIUM_DAMAGE),
-			new WeaponDefinition(Resources.TwoBullets, 10, 0.4, Resources.GunSound1),			
-			new WeaponDefinition(Resources.OneBullet, 6, 2.2, Resources.EnemyOneShot, WeaponDefinition.PLAYER_DAMAGE)
+			new WeaponDefinition(Resources.RoundBullets, 7, 1.7, Resources.GunSound2, WeaponDefinition.HARD_DAMAGE),
+			new WeaponDefinition(Resources.TwoBullets, 10, 0.4, Resources.GunSound1, WeaponDefinition.TOTAL_DAMAGE, WeaponDefinition.TWO_BULLETS_SHOT),			
+			new WeaponDefinition(Resources.OneBullet, 6, 2.2, Resources.EnemyOneShot, WeaponDefinition.VERY_LOW_DAMAGE)
 			];
 		
 		private static var _inst:Level1 = new Level1();
@@ -107,8 +113,6 @@ package game.levels
 					cloudZ == GameZOrders.CLOUDS_ABOVE ? UPPER_CLOUD_SPEED : LOWER_CLOUD_SPEED);
 			}
 		}
-		
-		
 		
 	}
 }

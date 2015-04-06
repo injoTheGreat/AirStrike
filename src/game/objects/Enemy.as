@@ -6,15 +6,18 @@ package game.objects
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	
-	
 	import game.MainManager;
 	import game.Resources;
+	import game.events.ChangeScoreEvent;
+	import game.levels.Level1;
 	import game.utils.CollisionUtils;
 	import game.utils.GraphicUtils;
 	import game.utils.GraphicsResource;
+	import game.utils.MathUtils;
 	import game.utils.ObjectPool;
 	import game.utils.SoundUtils;
 	import game.utils.getGameHeight;
+	import game.utils.getGameWidth;
 	
 
 	public class Enemy extends AnimatedGameObject
@@ -89,10 +92,11 @@ package game.objects
 			var widthDiff:Number;
 			var heightDiff:Number; 
 			
-			if (this.energy == 0)
+			if (this.energy <= 0)
 			{
 				// object is totally damaged
 				// simulate explosion
+				
 				MainManager.inst.kills++;
 				
 				widthDiff = (Resources.ExplosionGraphics.bitmap.width / Resources.ExplosionGraphics.frames - width)/2;
@@ -100,6 +104,15 @@ package game.objects
 				GraphicUtils.createAnimation(Resources.ExplosionGraphics, new Point(position.x - widthDiff, position.y - heightDiff), zOrder, false);
 				SoundUtils.play(Resources.ExplosionSound);
 				dispose();
+				
+				// checks if enemy can be replaced with pickUp item
+				// if pickUp item already exists then skip checking
+				if (!MainManager.inst.pickUpItem)
+				{
+					MainManager.inst.checkForPickUpItem(this);
+				}
+				
+				MainManager.inst.eventHandler.dispatchEvent(new ChangeScoreEvent(ChangeScoreEvent.UPDATE_SCORE, true));
 			}
 			else
 			{
@@ -110,5 +123,6 @@ package game.objects
 				SoundUtils.play(Resources.MissileHitSound);
 			}
 		}
+		
 	}
 }

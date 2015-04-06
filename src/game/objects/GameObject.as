@@ -23,6 +23,7 @@ package game.objects
 		
 		// object will be disposed if energy comes to 0
 		// depending of weapon damage value
+		[Bindable]
 		public var energy:Number = 1;
 		
 		protected var box:Rectangle = null;

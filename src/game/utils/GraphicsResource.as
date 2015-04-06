@@ -2,7 +2,7 @@ package game.utils
 {
     import flash.display.BitmapData;
     import flash.display.DisplayObject;
-
+	
     public class GraphicsResource
     {
         //bitmap data copied from given image (display object)

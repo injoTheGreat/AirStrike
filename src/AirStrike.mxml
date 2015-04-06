@@ -10,129 +10,105 @@
 						mouseDown="onMouseDown(event)"
 						applicationComplete="onAppCompleted(event)"
 						showStatusBar="false">
-	<fx:Script>
-		<![CDATA[
-			import mx.collections.ArrayCollection;
-			import mx.events.FlexEvent;
-			
-			import game.MainManager;
-			
-			
-			[Embed(source="/assets/images/sound_on.png")]
-			private static const SOUND_ON:Class;
-
-			[Embed(source="/assets/images/sound_off.png")]
-			private static const SOUND_OFF:Class;
-
-			private var gameStarted:Boolean = false;
-			private var keyCodes:ArrayCollection = new ArrayCollection();
-
-			//application created
-			protected function appCreationComplete(event:FlexEvent):void
-			{
-				Mouse.hide();
-				MainManager.inst.init(gamePanel.width, gamePanel.height);
-
-				gameStarted = true;
-				
-				/*gamePanel.graphics.clear();
-				gamePanel.graphics.beginBitmapFill(MainManager.inst.backBuffer);
-				gamePanel.graphics.drawRect(0, 0, gamePanel.width, gamePanel.height);
-				gamePanel.graphics.endFill();*/
-			}
-
-			//enter frame handler
-			protected function onEnterFrame(event:Event):void
-			{
-				if (gameStarted)
-				{
-					if (keyCodes.length > 0)
-					{
-						MainManager.inst.keyDown(keyCodes.toArray());
-					}
-					
-					MainManager.inst.render();
-
-					gamePanel.graphics.clear();
-					gamePanel.graphics.beginBitmapFill(MainManager.inst.backBuffer);
-					gamePanel.graphics.drawRect(0, 0, gamePanel.width, gamePanel.height);
-					gamePanel.graphics.endFill();
-				}
-			}
-
-			protected function onClick(event:MouseEvent):void
-			{
-				MainManager.inst.mouseClick(event);
-			}
-
-			protected function onMouseMove(event:MouseEvent):void
-			{
-				MainManager.inst.mouseMove(event);
-			}
-
-			protected function onMouseUp(event:MouseEvent):void
-			{
-				MainManager.inst.mouseUp(event);
-			}
-
-			protected function onMouseDown(event:MouseEvent):void
-			{
-				MainManager.inst.mouseDown(event);
-			}
-
-			protected function onKeyDown(event:KeyboardEvent):void
-			{
-				if (!keyCodes.contains(event.keyCode))
-					keyCodes.addItem(event.keyCode);
-			}
-
-			protected function onKeyUp(event:KeyboardEvent):void
-			{
-				if (keyCodes.contains(event.keyCode))
-				{
-					keyCodes.removeItemAt(keyCodes.getItemIndex(event.keyCode))
-				}
-			}
-
-			protected function onAppCompleted(event:FlexEvent):void
-			{
-				stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
-				stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUp);
-			}
-			
-			protected function gameSound_clickHandler(event:MouseEvent):void
-			{
-//				MainManager.inst.soundEnabled = !MainManager.inst.soundEnabled;
-			}
-			
-		]]>
-	</fx:Script>
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
 	
+	<fx:Style >
+		@namespace s "library://ns.adobe.com/flex/spark";
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		
+		.playerEnergyBorder {
+			backgroundColor: #FFFFFF;
+			borderVisible: false;
+		}
+		.playerEnergy {
+			backgroundColor: #FF0000;
+			borderVisible: false;
+		}
+		
+	</fx:Style>
+	<fx:Script  source="airStrike.as"/>
+	
+<!--	FIXME: add logic to mute SOUNd when "M" is pressed
+-->	
 	<mx:Canvas id="gamePanel"
 			   width="100%"
 			   height="100%"/>
 
-	<s:Image id="gameSound" 
-			 source="{MainManager.inst.soundEnabled ? new SOUND_ON().bitmapData : new SOUND_OFF().bitmapData}"
-			 scaleMode="letterbox" 
-			 smoothingQuality="high"
-			 smooth="true"
-			 width="25"
-			 height="25"
-			 left="20"
-			 includeInLayout="false"
-			 visible="true"
-			 click="gameSound_clickHandler(event)"
-			 top="20"/>
+	<s:HGroup id="gameInfo"
+			  top="10"
+			  left="20" 
+			  gap="20"
+			  verticalAlign="middle">
+		
+		<s:Image id="gameSound" 
+				 source="{new SOUND_ON().bitmapData}"
+				 scaleMode="letterbox" 
+				 smoothingQuality="high"
+				 width="25" 
+				 height="25" 
+				 smooth="true"
+				 mouseOver="{Mouse.show()}"
+				 mouseOut="{Mouse.hide()}"
+				 useHandCursor="true"
+				 buttonMode="true"
+				 includeInLayout="true"
+				 visible="true"
+				 click="gameSound_clickHandler(event)" />
+		
+		<s:HGroup id="playerEnergyInfo"
+				  width="160"
+				  gap="5"
+				  verticalAlign="middle">
+			<s:Image id="energyImg" 
+					 source="{new PLAYER_ENERGY().bitmapData}"
+					 scaleMode="letterbox" 
+					 smoothingQuality="high"
+					 width="25" 
+					 height="25" 
+					 smooth="true" />
+			<s:BorderContainer id="playerEnergyBorder"
+							   width="100%"
+							   height="20" 
+							   styleName="playerEnergyBorder">
+				<s:BorderContainer id="playerEnergy" 
+								   height="20"
+								   styleName="playerEnergy"
+								   width="{playerEnergyBorder.width * MainManager.inst.player.energy}" />
+			</s:BorderContainer>
+		
+		</s:HGroup>
+						   
+		
+		<s:HGroup id="playerWeaponInfo"
+				  gap="5"
+				  verticalAlign="middle">
+			
+			<s:Image id="playerWeapon"
+						   scaleMode="letterbox"
+						   smoothingQuality="high" 
+						   smooth="true"
+						   width="18"
+						   height="18"
+						   source="{_weaponImage}" />
+			
+			<s:Label id="weaponAmmo"
+					 text="x{MainManager.inst.playerWeapon.ammunition}"
+					 color="#ffffff"
+					 fontSize="15"
+					 fontWeight="bold"/>
 	
-	<s:Label color="#FFFFFF"
-			 text="{MainManager.inst.kills}"
-			 fontSize="20"
-			 fontWeight="bold"
+		</s:HGroup>
+		
+	</s:HGroup>
+		
+	<s:Label id="gameScore"
+			 color="#FFFFFF"
+			 text="Score: {MainManager.inst.score}"
+			 fontSize="18"
 			 right="20"
-			 top="20"/>
+			 top="15" 
+			 fontWeight="bold"/>
 	
 </s:WindowedApplication>

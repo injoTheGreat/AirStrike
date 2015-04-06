@@ -9,6 +9,9 @@ package game.objects
 	
 	import game.MainManager;
 	import game.Resources;
+	import game.events.ChangeScoreEvent;
+	import game.events.CollectItemEvent;
+	import game.levels.Level1;
 	import game.objects.interfaces.IInteractiveObject;
 	import game.utils.CollisionUtils;
 	import game.utils.GraphicUtils;
@@ -35,6 +38,8 @@ package game.objects
 			timeToNextBullet = 0;
 			isShooting = false;
 			_speed  = speed;
+			
+			Level1.inst.weapons[0].collected = true;
 		}
 
 		//update properties for every frame with given time
@@ -56,6 +61,8 @@ package game.objects
 					bullet.rotation = rotation;
 					bullet.startUp(MainManager.inst.playerWeapon, bulletPosition, new Point(Math.sin(rotation), -Math.cos(rotation)), CollisionUtils.COLLISION_BULLET_PLAYER);
 					SoundUtils.play(MainManager.inst.playerWeapon.sound);
+					
+					MainManager.inst.playerWeapon.ammunition -= MainManager.inst.playerWeapon.bulletsPerShot;
 				}
 			}
 		}
@@ -71,7 +78,7 @@ package game.objects
 
 		public function mouseDown(event:MouseEvent):void
 		{
-			isShooting = true;
+			isShooting = MainManager.inst.playerWeapon.ammunition >= MainManager.inst.playerWeapon.bulletsPerShot;
 			timeToNextBullet = 0;
 		}
 
@@ -84,13 +91,13 @@ package game.objects
 			position.y = event.localY - height / 2;
 
 			if (position.x < 0)
-				position.x=0;
+				position.x = 0;
 			if (position.x > (gameWidth - width))
-				position.x=gameWidth - width;
+				position.x = gameWidth - width;
 			if (position.y < 0)
-				position.y=0;
+				position.y = 0;
 			if (position.y > (gameHeight - height))
-				position.y=gameHeight - height;
+				position.y = gameHeight - height;
 		}
 		
 		public function keyDown(keyCodes:Array):void		
@@ -116,10 +123,34 @@ package game.objects
 				// collision with enemy bullet
 				this.energy -= MainManager.inst.enemyWeapon.damage;
 			}
-			else
+			else if (collideWithObject.collisionType == CollisionUtils.COLLISION_ENEMY)
 			{
 				// direct collision with enemy object
 				this.energy = 0;
+			}
+			else
+			{
+				// collision with pick up item
+				
+				if ((collideWithObject as BackgroundElement).pickUpType == BackgroundElement.PICK_UP_WEAPON_ITEM)
+				{
+					MainManager.inst.eventHandler.dispatchEvent(new CollectItemEvent(CollectItemEvent.PLAYER_WEAPON_CHANGED, Level1.inst.weapons[1]));
+				}
+				if ((collideWithObject as BackgroundElement).pickUpType == BackgroundElement.PICK_UP_AMMO_ITEM)
+				{
+					MainManager.inst.eventHandler.dispatchEvent(new CollectItemEvent(CollectItemEvent.AMMUNITION_RELOAD, MainManager.inst.playerWeapon));
+				}
+				if ((collideWithObject as BackgroundElement).pickUpType == BackgroundElement.PICK_UP_ENERGY_ITEM)
+				{
+					MainManager.inst.eventHandler.dispatchEvent(new CollectItemEvent(CollectItemEvent.PLAYER_ENERGY_REFILL));
+				}
+				
+				MainManager.inst.pickUpItem = null;
+				
+				// update score when picking up item
+				MainManager.inst.eventHandler.dispatchEvent(new ChangeScoreEvent(ChangeScoreEvent.UPDATE_SCORE));
+				
+				return;
 			}
 			
 			var widthDiff:Number;
