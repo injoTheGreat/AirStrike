@@ -16,8 +16,10 @@ package game.objects
 		// default value for most background 
 		public static const NOT_COLLECTED_ITEM:int = -1;
 		public static const PICK_UP_AMMO_ITEM:int = 1;
-		public static const PICK_UP_WEAPON_ITEM:int = 2;
-		public static const PICK_UP_ENERGY_ITEM:int = 3;
+		public static const PICK_UP_WEAPON_ITEM_2BULLETS:int = 2;
+		public static const PICK_UP_WEAPON_ITEM_3BULLETS:int = 3;
+		public static const PICK_UP_ENERGY_ITEM:int = 4;
+		public static const PICK_UP_MISSILE_ITEM:int = 5;
 		
 		private var _collisionType:String;
 
@@ -56,22 +58,35 @@ package game.objects
 		
 		public override function handleCollision(collideWithObject:GameObject):void
 		{
-			// removes background (ammunition/weapon pick up) element from display stage
+			// removes background element from display stage
 			this.dispose();
 		}
 		
 		public static function getPickUpGraphicMap(type:int):GraphicsResource
 		{
-			if (type == PICK_UP_AMMO_ITEM)
+			if (type == PICK_UP_ENERGY_ITEM)
 			{
-				return Resources.AmmoBoxItem;
+				return Resources.HelpItem;
 			}
-			if (type == PICK_UP_WEAPON_ITEM)
+			if (type == PICK_UP_WEAPON_ITEM_2BULLETS)
 			{
 				return Resources.Weapon2BulletsItem;
 			}
+			if (type == PICK_UP_WEAPON_ITEM_3BULLETS)
+			{
+				return Resources.Weapon3BulletsItem;
+			}
+			if (type == PICK_UP_MISSILE_ITEM)
+			{
+				return Resources.MissileItem;
+			}
 			
-			return Resources.HelpItem;
+			return Resources.AmmoBoxItem;
+		}
+		
+		public static function getAircraftIslands():Array
+		{
+			return [Resources.BigIslandGraphics, Resources.BigIsland1Graphics, Resources.BigIsland2Graphics];
 		}
 	}
 }

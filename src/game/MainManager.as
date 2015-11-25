@@ -14,13 +14,11 @@ package game
 	import flash.ui.Keyboard;
 	
 	import mx.collections.ArrayCollection;
-	import mx.utils.object_proxy;
 	
 	import game.events.ChangeScoreEvent;
 	import game.events.CollectItemEvent;
 	import game.levels.Level1;
 	import game.objects.BackgroundElement;
-	import game.objects.Bullet;
 	import game.objects.Enemy;
 	import game.objects.GameObject;
 	import game.objects.GameZOrders;
@@ -34,7 +32,7 @@ package game
 	{
 		private static var _inst:MainManager = new MainManager();
 
-		private static const BACK_COLOR:uint=0xFF0043AB;
+		private static const BACK_COLOR:uint = 0xFF0043AB;
 
 		//background bitmap data
 		public var backBuffer:BitmapData;
@@ -45,16 +43,35 @@ package game
 
 		[Bindable]
 		public var kills:int = 0;
+		[Bindable]
+		public var enemyCount:int = 0;
+		[Bindable]
+		public var shotsFired:int = 0;
+		[Bindable]
+		public var shotsHit:int = 0;		
+		
+		[Bindable]
+		public var gameOver:Boolean = false;
 		
 		[Bindable]
 		public var score:int = 0;
 		
 		[Bindable]
-		public var player:WarriorPlane = new WarriorPlane();
+		public var player:WarriorPlane;
+		
+		[Bindable]
+		public var masterEnemy:Enemy;
 		
 		// indicates displayed pickUp item
 		public var pickUpItem:BackgroundElement;
+		
+		[Bindable]
 		public var soundEnabled:Boolean = true;
+		[Bindable]
+		public var musicEnabled:Boolean = true;
+		
+		public var isMissileLaunched:Boolean = false;
+		
 		//date for time lapse
 		private var _lastTime:Date;
 
@@ -63,20 +80,28 @@ package game
 		private var _insertedObjects:ArrayCollection = new ArrayCollection();
 		private var _interactiveObjects:ArrayCollection = new ArrayCollection();
 		
+		/*[Bindable]
+		public var playerWeapon:WeaponDefinition = Level1.inst.playerWeapons[0];*/
+		public var enemyWeapon:WeaponDefinition = Level1.inst.enemyWeapons[0];
 		[Bindable]
-		public var playerWeapon:WeaponDefinition = Level1.inst.weapons[0];
-		public var enemyWeapon:WeaponDefinition = Level1.inst.weapons[2];
+		public var missileWeapon:WeaponDefinition = Level1.inst.playerWeapons[3];
 		
 		public var eventHandler:EventDispatcher = new EventDispatcher();
 
 
 		public function MainManager()
 		{
+			player = new WarriorPlane();
 		}
 
 		public static function get inst():MainManager
 		{
 			return _inst;
+		}
+
+		public static function setInst():void
+		{
+			_inst = new MainManager();
 		}
 
 		//initialize manager
@@ -97,9 +122,25 @@ package game
 		//adds object for rendering
 		public function addObject(gameObject:GameObject):void
 		{
+			if (gameObject is BackgroundElement)
+			{
+				// if non-Cloud background element Interesects another background object
+				// then do not add that object for rendering
+				for each (var o:GameObject in _objects) 
+				{
+					if (o is BackgroundElement && gameObject.boundingBox.intersects(o.boundingBox) &&
+						(gameObject as BackgroundElement).speed == (o as BackgroundElement).speed)
+					{
+						gameObject.active = false;
+						return;
+					}
+				}
+			}
+			
 			_insertedObjects.addItem(gameObject);
 		}
 
+		
 		//removes object from rendering
 		public function removeObject(gameObject:GameObject):void
 		{
@@ -260,13 +301,27 @@ package game
 		{
 			//additional logic here
 			
-			if(keyCodes.indexOf(Keyboard.NUMBER_1)>-1 && playerWeapon != Level1.inst.weapons[0])
+			if(keyCodes.indexOf(Keyboard.NUMBER_1) >-1 && player.weapon != Level1.inst.playerWeapons[0])
 			{
-				this.eventHandler.dispatchEvent(new CollectItemEvent(CollectItemEvent.PLAYER_WEAPON_CHANGED, Level1.inst.weapons[0]));
+				this.eventHandler.dispatchEvent(new CollectItemEvent(CollectItemEvent.PLAYER_WEAPON_CHANGED, Level1.inst.playerWeapons[0]));
 			}
-			else if(keyCodes.indexOf(Keyboard.NUMBER_2) > -1 && playerWeapon != Level1.inst.weapons[1] && Level1.inst.weapons[1].collected)
+			else if(keyCodes.indexOf(Keyboard.NUMBER_2) > -1 && player.weapon != Level1.inst.playerWeapons[1] && Level1.inst.playerWeapons[1].collected)
 			{
-				this.eventHandler.dispatchEvent(new CollectItemEvent(CollectItemEvent.PLAYER_WEAPON_CHANGED, Level1.inst.weapons[1]));
+				this.eventHandler.dispatchEvent(new CollectItemEvent(CollectItemEvent.PLAYER_WEAPON_CHANGED, Level1.inst.playerWeapons[1]));
+			}
+			else if(keyCodes.indexOf(Keyboard.NUMBER_3) > -1 && player.weapon != Level1.inst.playerWeapons[2] && Level1.inst.playerWeapons[2].collected)
+			{
+				this.eventHandler.dispatchEvent(new CollectItemEvent(CollectItemEvent.PLAYER_WEAPON_CHANGED, Level1.inst.playerWeapons[2]));
+			}
+			
+			/*if (keyCodes.indexOf(Keyboard.M) > -1)
+			{
+				this.eventHandler.dispatchEvent(new SoundEvent(SoundEvent.SOUND_ENABLED_CHANGE));
+			}*/
+			if (keyCodes.indexOf(Keyboard.P) > -1)
+			{
+				// update time to newest when game is paused
+				_lastTime = new Date();
 			}
 			
 			for each (var interactive:IInteractiveObject in _interactiveObjects)
@@ -282,7 +337,7 @@ package game
 		 */		
 		protected function updateScore(ev:ChangeScoreEvent):void
 		{
-			this.score += ev.isEnemyKilled ? this.playerWeapon.damage * Level1.DEFAULT_SCORE : Level1.ITEM_SCORE;
+			this.score += ev.isEnemyKilled ? ev.enemyDifficultyLevel * this.player.weapon.bulletsPerShot * Level1.DEFAULT_SCORE : Level1.DEFAULT_SCORE;
 		}
 		
 		/**
@@ -295,21 +350,32 @@ package game
 		{
 			var destroyedObjectPos:Point = new Point(destroyedObject.position.x, destroyedObject.position.y);
 		
-			if (this.score == Level1.PICK_UP_WEAPON_SCORE)
+			if (this.kills == Level1.ENEMY_KILLS_COUNT[1])
 			{
-				// replace enemy with new weapon item
+				// replace enemy with new 2 bullets weapon item
 				insertPickUpItem(destroyedObjectPos);
 			}
+			else if (this.kills == Level1.ENEMY_KILLS_COUNT[4])
+			{
+				// replace enemy with new 3 bullets weapon item
+				insertPickUpItem(destroyedObjectPos, BackgroundElement.PICK_UP_WEAPON_ITEM_3BULLETS);
+			}
 			// check if current weapon ammunition is equal to 10% of the full ammunition
-			else if (this.playerWeapon.ammunition <= this.playerWeapon.fullAmmo * 0.1 && this.kills % 5 <= 2)
+			else if (this.player.weapon.ammunition <= this.player.weapon.fullAmmo * 0.1 && this.kills % 5 <= 2)
 			{
 				// replace enemy with reload ammunition item 
 				insertPickUpItem(destroyedObjectPos, BackgroundElement.PICK_UP_AMMO_ITEM)
 			}
 			// replace enemy with energy pick up item
-			else if (this.player.energy <= 0.5 && this.score > Level1.PICK_UP_WEAPON_SCORE)
+			else if (this.player.energy <= 0.5 && this.kills >= Level1.PICK_UP_HELP_KILLS)
 			{
 				insertPickUpItem(destroyedObjectPos, BackgroundElement.PICK_UP_ENERGY_ITEM);
+			}
+			else if (this.kills == Level1.ENEMY_KILLS_COUNT[3] ||
+					(this.kills > Level1.ENEMY_KILLS_COUNT[3] && this.player.weapon.ammunition < 20 && this.player.energy < 0.5))
+			{
+				// replace enemy with rocket pick up item
+				insertPickUpItem(destroyedObjectPos, BackgroundElement.PICK_UP_MISSILE_ITEM);
 			}
 		}
 		
@@ -319,11 +385,12 @@ package game
 		 * @param type indicates pick up item type
 		 * 
 		 */		 
-		public function insertPickUpItem(position:Point, type:int = BackgroundElement.PICK_UP_WEAPON_ITEM):void
+		public function insertPickUpItem(position:Point, type:int = BackgroundElement.PICK_UP_WEAPON_ITEM_2BULLETS):void
 		{
 			var graphic:GraphicsResource = BackgroundElement.getPickUpGraphicMap(type);
 			pickUpItem = BackgroundElement.pool.getItem() as BackgroundElement;
-			pickUpItem.startUp(graphic, position, GameZOrders.PLAYER, Level1.AMMO_ITEM_SPEED, CollisionUtils.COLLISION_PICK_UP_ITEM, type);
+			pickUpItem.startUp(graphic, position, GameZOrders.PLAYER, Level1.PICK_UP_ITEM_SPEED, CollisionUtils.COLLISION_PICK_UP_ITEM, type);
 		}
+		
 	}
 }

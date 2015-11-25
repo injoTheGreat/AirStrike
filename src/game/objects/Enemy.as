@@ -25,12 +25,22 @@ package game.objects
 		public static var pool:ObjectPool = new ObjectPool(createEnemy);
 		public static const GREEN_PLANE_SPEED:Number = 80;
 		public static const BLUE_PLANE_SPEED:Number = 60;
-		public static const WHITE_PLANE_SPEED:Number = 100;
-		public static const COOL_PLANE_SPEED:Number = 90;
+		public static const WHITE_PLANE_SPEED:Number = 90;
+		public static const COOL_PLANE_SPEED:Number = 100;
+		public static const AIRCRAFT_PLANE_SPEED:Number = 110;
+		public static const AIRCRAFT_MASTER_SPEED:Number = 120;
 		
 		private var timeToNextBullet:Number = 0;
-		private var _speed:Number = 0;
+		private var _moveRight:Boolean = true;
+		public var speed:Number = 0;
 		
+		private static const ANTI_AIRCRAFT_BULLET_ANGLE:Number = 40 * Math.PI/180;
+		
+		public static const EASY_LEVEL:int = 1;
+		public static const INTERMEDIATE_LEVEL:int = 2;
+		public static const PRO_LEVEL:int = 3;
+		public static const VETERAN_LEVEL:int = 4;
+		public static const MASTER_LEVEL:int = 5;
 		
 		public function Enemy()
 		{
@@ -41,34 +51,78 @@ package game.objects
 			return new Enemy();
 		}
 		
-		public function startUpEnemy(graphics:GraphicsResource, position:Point, speed:Number):void{
-			_speed = speed;
-			super.startUp(graphics, position, GameZOrders.PLAYER);
+		public function startUpEnemy(graphics:GraphicsResource, position:Point, speed:Number, z:int):void{
+			this.speed = speed;
+			super.startUp(graphics, position, z);
 		}
 		
-		//move down
+		// move down
+		// except for master enemy
 		public override function updateProperties(time:Number):void
 		{
 			super.updateProperties(time);
-			if(position.y > getGameHeight()){
+			if(position.y > getGameHeight() || position.x > getGameWidth() || position.x < 0)
+			{
 				dispose();
 			}
 			
-			position.y += _speed * time;
+			if (position.y >= 0 && getDifficultyLevel(this.graphics) == MASTER_LEVEL)
+			{
+				// move master enemy left/right
+				if (position.x + this.width < getGameWidth()-5 && _moveRight)
+				{
+					position.x += this.speed * time;
+				}
+				else if (position.x < 10)
+				{
+					_moveRight = true;
+				}
+				else
+				{
+					_moveRight = false;
+					position.x -= this.speed * time;
+				}
+				
+			}
+			else
+			{
+				position.y += this.speed * time;
+			}
 //			position.x += _speed * time;
 			
 			timeToNextBullet -= time;
 			
 			if (timeToNextBullet <= 0)
 			{
-				timeToNextBullet = MainManager.inst.enemyWeapon.timeBetweenBullets; 
-				var bulletPosition:Point = new Point(position.x + width/2 - MainManager.inst.enemyWeapon.graphics.bitmap.width/2, 
-					position.y + height - MainManager.inst.enemyWeapon.graphics.bitmap.height);
+				var isAntiAircraft:Boolean = getDifficultyLevel(this.graphics) == VETERAN_LEVEL;
 				
-				var bullet:Bullet=Bullet.pool.getItem() as Bullet;
-				bullet.rotation = rotation;
-				bullet.startUp(MainManager.inst.enemyWeapon, bulletPosition, new Point(Math.sin(rotation), Math.cos(rotation)), CollisionUtils.COLLISION_BULLET_ENEMY);
-				SoundUtils.play(MainManager.inst.enemyWeapon.sound);
+				var weaponDef:WeaponDefinition = isAntiAircraft ? Level1.inst.enemyWeapons[4] : 
+					getDifficultyLevel(this.graphics) == MASTER_LEVEL ? Level1.inst.enemyWeapons[5] : MainManager.inst.enemyWeapon;
+
+				timeToNextBullet = weaponDef.timeBetweenBullets; 
+
+				var bulletPosition:Point = new Point(position.x + width/2 - weaponDef.graphics.bitmap.width/2, 
+					position.y + height - weaponDef.graphics.bitmap.height);
+				if (isAntiAircraft)
+				{
+					// anti-aircraft bullet position
+					bulletPosition = new Point(position.x + 0.8*width, position.y);
+				}
+				if (getDifficultyLevel(this.graphics) == MASTER_LEVEL)
+				{
+					// master enemy bullet position
+					bulletPosition = new Point(position.x + 0.48*width - weaponDef.graphics.bitmap.width/2, 
+						position.y + height - weaponDef.graphics.bitmap.height);
+				}
+				
+				var bullet:Bullet = Bullet.pool.getItem() as Bullet;
+				bullet.rotation = isAntiAircraft ? ANTI_AIRCRAFT_BULLET_ANGLE : rotation;
+				bullet.startUp(weaponDef, 
+					bulletPosition, 
+					new Point(Math.sin(bullet.rotation), isAntiAircraft ? -Math.cos(bullet.rotation) : Math.cos(bullet.rotation)), 
+					CollisionUtils.COLLISION_BULLET_ENEMY);
+				
+				SoundUtils.playSFX(weaponDef.sound);
 			}
 		}
 		
@@ -76,17 +130,45 @@ package game.objects
 			return CollisionUtils.COLLISION_ENEMY;
 		}
 		
+		public static function getDifficultyLevel(graphics:GraphicsResource):uint
+		{
+			if (([Resources.WhiteEnemy, Resources.BlueEnemy, Resources.GreenEnemy] as Array).indexOf(graphics) > -1)
+			{
+				return EASY_LEVEL;
+			}
+			
+			if (([Resources.AircraftEnemy, Resources.CoolPlaneEnemy] as Array).indexOf(graphics) > -1)
+			{
+				return INTERMEDIATE_LEVEL;
+			}
+			if (([Resources.BomberAirCraftEnemy1, Resources.BomberAirCraftEnemy2, Resources.F16Enemy, Resources.AircraftMasterHelp] as Array).indexOf(graphics) > -1)
+			{
+				return PRO_LEVEL;
+			}
+			if (([Resources.AntiAicraft, Resources.AntiAicraft1] as Array).indexOf(graphics) > -1)
+			{
+				return VETERAN_LEVEL;
+			}
+			
+			return MASTER_LEVEL;
+		}
+		
 		public override function handleCollision(collideWithObject:GameObject):void{
 			
 			if (collideWithObject.collisionType == CollisionUtils.COLLISION_BULLET_PLAYER)
 			{
 				// collision with player bullet
-				this.energy -= MainManager.inst.playerWeapon.damage;
+				this.energy -= getDifficultyLevel(this.graphics) == MASTER_LEVEL ? WeaponDefinition.VERY_LOW_DAMAGE : 
+					(collideWithObject as Bullet).weapon.damage;
 			}
 			else
 			{
 				// direct collision with player
-				this.energy = 0;
+				// except if enemy is anti-aircraft
+				if (getDifficultyLevel(this.graphics) == VETERAN_LEVEL)
+					return;
+				else
+					this.energy = 0;
 			}
 			
 			var widthDiff:Number;
@@ -102,9 +184,24 @@ package game.objects
 				widthDiff = (Resources.ExplosionGraphics.bitmap.width / Resources.ExplosionGraphics.frames - width)/2;
 				heightDiff = (Resources.ExplosionGraphics.bitmap.height - height)/2;
 				GraphicUtils.createAnimation(Resources.ExplosionGraphics, new Point(position.x - widthDiff, position.y - heightDiff), zOrder, false);
-				SoundUtils.play(Resources.ExplosionSound);
+				SoundUtils.playSFX(Resources.ExplosionSound);
 				dispose();
 				
+				// change enemy's weapon
+				if (MainManager.inst.kills == Level1.ENEMY_KILLS_COUNT[0])
+					MainManager.inst.enemyWeapon = Level1.inst.enemyWeapons[1];
+				
+				if (MainManager.inst.kills == Level1.ENEMY_KILLS_COUNT[2])
+				{
+					MainManager.inst.enemyWeapon = Level1.inst.enemyWeapons[2];
+					
+					Level1.inst.playerWeapons[0].damage = WeaponDefinition.WEAK_DAMAGE;
+					Level1.inst.playerWeapons[1].damage = WeaponDefinition.WEAK_DAMAGE;
+				}
+				
+				if (MainManager.inst.kills == Level1.ENEMY_KILLS_COUNT[3])
+					MainManager.inst.enemyWeapon = Level1.inst.enemyWeapons[3];
+
 				// checks if enemy can be replaced with pickUp item
 				// if pickUp item already exists then skip checking
 				if (!MainManager.inst.pickUpItem)
@@ -112,15 +209,15 @@ package game.objects
 					MainManager.inst.checkForPickUpItem(this);
 				}
 				
-				MainManager.inst.eventHandler.dispatchEvent(new ChangeScoreEvent(ChangeScoreEvent.UPDATE_SCORE, true));
+				MainManager.inst.eventHandler.dispatchEvent(new ChangeScoreEvent(ChangeScoreEvent.UPDATE_SCORE, true, getDifficultyLevel(this.graphics)));
 			}
 			else
 			{
 				//simulate missile hit by player
 				widthDiff = (Resources.MissileHit.bitmap.width / Resources.MissileHit.frames - width)/2;
 				heightDiff = (Resources.MissileHit.bitmap.height - height)/2;
-				GraphicUtils.createAnimation(Resources.MissileHit, new Point(position.x + widthDiff, position.y + height/2), zOrder, false);
-				SoundUtils.play(Resources.MissileHitSound);
+				GraphicUtils.createAnimation(Resources.MissileHit, new Point(position.x + width/3, position.y + height/2), zOrder, false);
+				SoundUtils.playSFX(Resources.MissileHitSound);
 			}
 		}
 		

@@ -2,113 +2,70 @@
 <s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009"
 						xmlns:mx="library://ns.adobe.com/flex/mx"
 						xmlns:s="library://ns.adobe.com/flex/spark"
-						creationComplete="appCreationComplete(event)"
-						enterFrame="onEnterFrame(event)"
-						click="onClick(event)"
-						mouseMove="onMouseMove(event)"
-						mouseUp="onMouseUp(event)"
-						mouseDown="onMouseDown(event)"
-						applicationComplete="onAppCompleted(event)"
-						showStatusBar="false">
+						xmlns:mainMenu="game.views.mainMenu.*"
+						xmlns:preloader="game.views.preloader.*"
+						xmlns:components="game.components.*"
+						xmlns:gameplay="game.views.gameplay.*"
+						showStatusBar="false" >
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			import game.MainManager;
+			import game.Resources;
+			import game.levels.Level1;
+			import game.utils.SoundUtils;
+			
+			protected function exitStateHandler(event:FlexEvent):void
+			{
+				SoundUtils.stop();
+				
+				// set new instances
+				Level1.setInst();
+				MainManager.setInst();
+				
+				this.gamePanel.gameStarted = false;
+			}
+			
+		]]>
+	</fx:Script>
+	
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
 	
-	<fx:Style >
-		@namespace s "library://ns.adobe.com/flex/spark";
-		@namespace mx "library://ns.adobe.com/flex/mx";
-		
-		.playerEnergyBorder {
-			backgroundColor: #FFFFFF;
-			borderVisible: false;
-		}
-		.playerEnergy {
-			backgroundColor: #FF0000;
-			borderVisible: false;
-		}
-		
-	</fx:Style>
-	<fx:Script  source="airStrike.as"/>
+	<s:states>
+		<s:State name="loading" 
+				 enterState="{SoundUtils.playSFX(Resources.GameLoadSound)}"/>
+		<s:State name="mainMenu"
+				 enterState="{SoundUtils.playMusic(Resources.MainMenuGameSound)}"
+				 exitState="{SoundUtils.stop()}" />
+		<s:State name="gameplay"
+				 enterState="{SoundUtils.playMusic(Resources.GameplaySound)}"
+				 exitState="exitStateHandler(event)"/>
+		<!--<s:State name="gameover" 
+				 enterState="{SoundUtils.playMusic(Resources.GameOverSound, 1)}"/>-->
+	</s:states>
 	
-<!--	FIXME: add logic to mute SOUNd when "M" is pressed
--->	
-	<mx:Canvas id="gamePanel"
-			   width="100%"
-			   height="100%"/>
-
-	<s:HGroup id="gameInfo"
-			  top="10"
-			  left="20" 
-			  gap="20"
-			  verticalAlign="middle">
-		
-		<s:Image id="gameSound" 
-				 source="{new SOUND_ON().bitmapData}"
-				 scaleMode="letterbox" 
-				 smoothingQuality="high"
-				 width="25" 
-				 height="25" 
-				 smooth="true"
-				 mouseOver="{Mouse.show()}"
-				 mouseOut="{Mouse.hide()}"
-				 useHandCursor="true"
-				 buttonMode="true"
-				 includeInLayout="true"
-				 visible="true"
-				 click="gameSound_clickHandler(event)" />
-		
-		<s:HGroup id="playerEnergyInfo"
-				  width="160"
-				  gap="5"
-				  verticalAlign="middle">
-			<s:Image id="energyImg" 
-					 source="{new PLAYER_ENERGY().bitmapData}"
-					 scaleMode="letterbox" 
-					 smoothingQuality="high"
-					 width="25" 
-					 height="25" 
-					 smooth="true" />
-			<s:BorderContainer id="playerEnergyBorder"
-							   width="100%"
-							   height="20" 
-							   styleName="playerEnergyBorder">
-				<s:BorderContainer id="playerEnergy" 
-								   height="20"
-								   styleName="playerEnergy"
-								   width="{playerEnergyBorder.width * MainManager.inst.player.energy}" />
-			</s:BorderContainer>
-		
-		</s:HGroup>
-						   
-		
-		<s:HGroup id="playerWeaponInfo"
-				  gap="5"
-				  verticalAlign="middle">
-			
-			<s:Image id="playerWeapon"
-						   scaleMode="letterbox"
-						   smoothingQuality="high" 
-						   smooth="true"
-						   width="18"
-						   height="18"
-						   source="{_weaponImage}" />
-			
-			<s:Label id="weaponAmmo"
-					 text="x{MainManager.inst.playerWeapon.ammunition}"
-					 color="#ffffff"
-					 fontSize="15"
-					 fontWeight="bold"/>
+	<!--// TODO: implement SubmitScore and ViewHighScores views
+			implement servers side
+			implement DAO model,access to DB-->
 	
-		</s:HGroup>
-		
-	</s:HGroup>
-		
-	<s:Label id="gameScore"
-			 color="#FFFFFF"
-			 text="Score: {MainManager.inst.score}"
-			 fontSize="18"
-			 right="20"
-			 top="15" 
-			 fontWeight="bold"/>
+	<gameplay:GamePanel id="gamePanel"
+						width="100%"
+						height="100%" 
+						excludeFrom="loading, mainMenu"
+						enabled="{!gameover.visible}"
+						itemDestructionPolicy="auto"/>
+	
+	<components:GameOverScreen id="gameover"
+							   excludeFrom="loading, mainMenu" 
+							   itemDestructionPolicy="auto"/>
+	
+	<mainMenu:MainMenu id="mainMenu"
+					   excludeFrom="loading, gameplay" />
+	
+	<preloader:CustomPreloader id="preloader"
+							   excludeFrom="mainMenu, gameplay"/>
 	
 </s:WindowedApplication>

@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:HGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" 
+		 gap="5" >
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script >
+		<![CDATA[
+			import game.MainManager;
+			import game.Resources;
+			import game.utils.SoundUtils;
+			
+			[Embed(source="/assets/images/sound_on.png")]
+			private static const SoundOn:Class;
+			[Embed(source="/assets/images/sound_off.png")]
+			private static const SoundOff:Class;
+			[Embed(source="/assets/images/music_on.png")]
+			private static const MusicOn:Class;
+			[Embed(source="/assets/images/music_off.png")]
+			private static const MusicOff:Class;
+			
+			private static const SOUND_ON:Bitmap = new SoundOn();
+			private static const SOUND_OFF:Bitmap = new SoundOff();
+			private static const MUSIC_ON:Bitmap = new MusicOn();
+			private static const MUSIC_OFF:Bitmap = new MusicOff();
+			
+			[Bindable]
+			public var includeSfxBtn:Boolean = false;
+			
+			// turn on/off game sounds
+			public function setGameSound(event:MouseEvent):void
+			{
+				if (!event)
+				{
+					// (un)mute game sounds when [M] key is pressed
+					if (!MainManager.inst.soundEnabled && !MainManager.inst.musicEnabled)
+					{
+						MainManager.inst.soundEnabled = MainManager.inst.musicEnabled = true;
+						
+						// play music
+						if (parentApplication.currentState == "gameplay")
+						{
+							SoundUtils.playMusic(Resources.GameplaySound);
+						}
+						if (parentApplication.currentState == "mainMenu")
+						{
+							SoundUtils.playMusic(Resources.MainMenuGameSound);
+						}
+					}
+					else
+					{
+						MainManager.inst.soundEnabled = MainManager.inst.musicEnabled = false;
+						
+						// stop music
+						SoundUtils.stop();
+					}
+						
+					return;	
+				}
+				
+				// sfx sound on/off
+				if (event && event.currentTarget == sound)
+				{
+					MainManager.inst.soundEnabled = !MainManager.inst.soundEnabled;
+				}
+				
+				// music sound on/off
+				if (event && event.currentTarget == music)
+				{
+					MainManager.inst.musicEnabled = !MainManager.inst.musicEnabled;
+					
+					if (MainManager.inst.musicEnabled)
+					{
+						// play music
+						if (parentApplication.currentState == "gameplay")
+						{
+							SoundUtils.playMusic(Resources.GameplaySound);
+						}
+						if (parentApplication.currentState == "mainMenu")
+						{
+							SoundUtils.playMusic(Resources.MainMenuGameSound);
+						}
+					}
+					else
+					{
+						// stop music
+						SoundUtils.stop();
+					}
+				}
+				
+				/*if (MainManager.inst.soundEnabled)
+				{
+					MainManager.inst.soundEnabled = false;
+					this.source = SOUND_OFF;
+					SoundUtils.stop();
+				}
+				else
+				{
+					MainManager.inst.soundEnabled = true;
+					this.source = SOUND_ON;
+					
+					if (parentApplication.currentState == "gameplay")
+					{
+						SoundUtils.play(Resources.GameplaySound, false);
+					}
+					if (parentApplication.currentState == "mainMenu")
+					{
+						SoundUtils.play(Resources.MainMenuGameSound, false);
+					}
+				}*/
+			}
+		]]>
+	</fx:Script>
+	
+	<s:Image id="sound"
+			 source="{MainManager.inst.soundEnabled ? SOUND_ON : SOUND_OFF}" 
+			 scaleMode="letterbox" 
+			 smoothingQuality="high"
+			 width="25" 
+			 height="25" 
+			 smooth="true"
+			 useHandCursor="true"
+			 buttonMode="true"
+			 visible="{includeSfxBtn}"
+			 includeInLayout="{includeSfxBtn}"
+			 click="setGameSound(event)" />
+	
+	<s:Image id="music"
+			 source="{MainManager.inst.musicEnabled ? MUSIC_ON : MUSIC_OFF}" 
+			 scaleMode="letterbox" 
+			 smoothingQuality="high"
+			 width="25" 
+			 height="25" 
+			 smooth="true"
+			 useHandCursor="true"
+			 buttonMode="true"
+			 click="setGameSound(event)" />
+	
+</s:HGroup>

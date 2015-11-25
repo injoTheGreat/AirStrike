@@ -2,17 +2,15 @@ package game.objects
 {
 	import flash.geom.Point;
 	
-	import flashx.textLayout.formats.Direction;
-	
+	import game.MainManager;
 	import game.utils.CollisionUtils;
-	import game.utils.GraphicsResource;
 	import game.utils.ObjectPool;
 	import game.utils.getGameHeight;
 
 	public class Bullet extends GameObject
 	{
 		public static var pool:ObjectPool = new ObjectPool(createBullet);
-		private var _def:WeaponDefinition;
+		public var weapon:WeaponDefinition;
 		private var _collisionType:String;
 		
 		public function Bullet()
@@ -26,7 +24,7 @@ package game.objects
 		
 		public function startUp(definition:WeaponDefinition, position:Point, direction:Point, collisionType:String):void{
 			this.direction = direction;
-			_def = definition;
+			weapon = definition;
 			_collisionType = collisionType;
 			initialize(definition.graphics, position, GameZOrders.PLAYER);
 		}
@@ -40,9 +38,9 @@ package game.objects
 			}
 			
 			if(direction.y != 0)
-				position.y += _def.bulletSpeed * direction.y;
+				position.y += weapon.bulletSpeed * direction.y;
 			if(direction.x != 0)
-				position.x += _def.bulletSpeed * direction.x;
+				position.x += weapon.bulletSpeed * direction.x;
 		}
 		
 		public override function get collisionType():String{
@@ -50,6 +48,11 @@ package game.objects
 		}
 		
 		public override function handleCollision(collideWithObject:GameObject):void{
+			if (_collisionType == CollisionUtils.COLLISION_BULLET_PLAYER)
+			{
+				MainManager.inst.shotsHit++;
+			}
+			
 			dispose();
 		}
 	}

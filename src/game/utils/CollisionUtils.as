@@ -8,9 +8,6 @@ package game.utils
 		public static const COLLISION_ENEMY:String = "EnemyCollision";
 		public static const COLLISION_BULLET_PLAYER:String = "BulletPlayerCollision";
 		public static const COLLISION_BULLET_ENEMY:String = "BulletEnemyCollision";
-		/*public static const COLLISION_AMMO_ITEM:String = "AmmunitionItemCollision";
-		public static const COLLISION_WEAPON_ITEM:String = "WeapontemCollision";
-		public static const COLLISION_ENERGY_ITEM:String = "EnergytemCollision";*/
 		public static const COLLISION_PICK_UP_ITEM:String = "PickUptemCollision";
 		
 		public static const COLLISION_MAP:Object = generateCollisionMap();

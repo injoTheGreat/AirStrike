@@ -46,11 +46,8 @@ package game.objects
 		
 		public override function updateProperties(time:Number):void{
 			super.updateProperties(time);
-			if(active){
-				var ct:ColorTransform = new ColorTransform();
-//				ct.alphaOffset = 150;
-//				this.alphaBD.colorTransform(new Rectangle(0, 0, alphaBD.width, alphaBD.height), ct);
-				
+			if(active)
+			{
 				frameTime += time;
 				if (graphics.fps != -1)
 				{

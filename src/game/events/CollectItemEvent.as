@@ -8,6 +8,7 @@ package game.events
 	{
 		public static const AMMUNITION_RELOAD:String = "reload_weapon_ammunition";
 		public static const PLAYER_ENERGY_REFILL:String = "refill_player_energy";
+		public static const MISSILE_AMUNITION_COLLECTED:String = "missile_ammunition_collected";
 		public static const PLAYER_WEAPON_CHANGED:String = "player_weapon_changed";
 		public static const ENEMY_WEAPON_CHANGED:String = "enemy_weapon_changed";
 		

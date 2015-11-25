@@ -12,12 +12,14 @@ package game.events
 		public static const UPDATE_SCORE:String = "update_score";
 		
 		private var _isEnemyKilled:Boolean = false;
+		public var enemyDifficultyLevel:int;
 		
-		public function ChangeScoreEvent(type:String, isEnemyKilled:Boolean = false)
+		public function ChangeScoreEvent(type:String, isEnemyKilled:Boolean = false, enemyDifficultyLevel:int = 0)
 		{
 			super(type);
 			
 			this._isEnemyKilled = isEnemyKilled;
+			this.enemyDifficultyLevel = enemyDifficultyLevel;
 		}
 		
 		/**
@@ -33,7 +35,7 @@ package game.events
 		
 		public override function clone():Event
 		{
-			return new ChangeScoreEvent(type, isEnemyKilled);
+			return new ChangeScoreEvent(type, isEnemyKilled, enemyDifficultyLevel);
 		}
 	}
 }

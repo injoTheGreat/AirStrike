@@ -20,8 +20,11 @@ package game.utils
 		
 		public function getItem():GameObject{
 			for each(var object:GameObject in _objects){
-				if(!object.active && object.energy > 0)
+				if(!object.active)
+				{
+					object.energy = 1;
 					return object;
+				}
 			}
 			var newObject:GameObject = _objectBuilder();
 			_objects.addItem(newObject);
