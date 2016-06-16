@@ -6,7 +6,8 @@
 						xmlns:preloader="game.views.preloader.*"
 						xmlns:components="game.components.*"
 						xmlns:gameplay="game.views.gameplay.*"
-						showStatusBar="false" >
+						showStatusBar="false"
+						initialize="onAppInitialize(event)">
 	<fx:Script>
 		<![CDATA[
 			import mx.events.FlexEvent;
@@ -15,6 +16,9 @@
 			import game.Resources;
 			import game.levels.Level1;
 			import game.utils.SoundUtils;
+			
+			import serviceProxy.PlayersProxy;
+			import serviceProxy.ProxyManager;
 			
 			protected function exitStateHandler(event:FlexEvent):void
 			{
@@ -25,6 +29,11 @@
 				MainManager.setInst();
 				
 				this.gamePanel.gameStarted = false;
+			}
+			
+			protected function onAppInitialize(event:FlexEvent):void
+			{
+				ProxyManager.instance.registerServiceProxy(new PlayersProxy());
 			}
 			
 		]]>
@@ -47,9 +56,6 @@
 				 enterState="{SoundUtils.playMusic(Resources.GameOverSound, 1)}"/>-->
 	</s:states>
 	
-	<!--// TODO: implement SubmitScore and ViewHighScores views
-			implement servers side
-			implement DAO model,access to DB-->
 	
 	<gameplay:GamePanel id="gamePanel"
 						width="100%"

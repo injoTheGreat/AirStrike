@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx"
+		  borderVisible="false"
+		  borderWeight="4"
+		  width="100%"
+		  height="100%"
+		  cornerRadius="20"
+		  show="bordercontainer1_showHandler(event)">
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			import game.MainManager;
+			
+			import serviceProxy.PlayersProxy;
+			import serviceProxy.ProxyManager;
+			
+			protected function menu_clickHandler(event:MouseEvent):void
+			{
+				parentApplication.setCurrentState('mainMenu', false);
+				
+				(ProxyManager.instance[PlayersProxy] as PlayersProxy).removeAllEventListeners();
+			}
+			
+			protected function bordercontainer1_showHandler(event:FlexEvent):void
+			{
+				menu.visible = menu.includeInLayout = MainManager.inst.gameOver;
+			}
+			
+			protected function closeBtn_clickHandler(event:MouseEvent):void
+			{
+				this.visible = this.includeInLayout = false;
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Style>
+		@namespace s "library://ns.adobe.com/flex/spark";
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		
+		.lbl1
+		{
+			fontWeight: bold;
+			fontSize: 20;
+			color: #800000;
+			horizontalCenter: 0
+		}
+		.btnLbl
+		{
+			borderColor: #000000;
+			borderThickness: 2;
+			borderVisible: true;
+			fontSize: 18;
+			fontWeight: bold;
+			color: #ffffff;
+			paddingBottom: 10;
+			paddingRight: 20;
+			paddingLeft: 20;
+			paddingTop: 10;
+			backgroundColor: #800000;
+			horizontalCenter: 0
+		}
+		
+	</fx:Style>
+	
+	<s:backgroundFill>
+		<s:SolidColor alpha="0.8" 
+					  color="#ffffff"/>
+	</s:backgroundFill>
+	
+	<s:Label id="title"
+			 y="10"
+			 text="HIGH SCORES"
+			 styleName="lbl1"/>
+		
+	<s:DataGrid id="scoresGrid"
+				width="95%"
+				fontSize="14"
+				verticalCenter="0"
+				horizontalCenter="0"
+				requestedRowCount="{menu.visible ? 8 : 10}"
+				resizableColumns="false"/>
+	<s:Label id="menu"
+			 y="{scoresGrid.y + scoresGrid.height + 13}"
+			 text="MENU"
+			 styleName="btnLbl"
+			 textAlign="center"
+			 useHandCursor="true"
+			 buttonMode="true"
+			 click="menu_clickHandler(event)"/>
+	
+	<s:Label id="closeBtn"
+			 y="{scoresGrid.y + scoresGrid.height + 30}"
+			 text="CLOSE"
+			 styleName="btnLbl"
+			 textAlign="center"
+			 useHandCursor="true"
+			 visible="{!menu.visible}"
+			 includeInLayout="{!menu.includeInLayout}"
+			 buttonMode="true"
+			 click="closeBtn_clickHandler(event)"/>
+	
+</s:BorderContainer>

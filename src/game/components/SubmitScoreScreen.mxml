@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx"
+				   verticalCenter="0"
+				   horizontalCenter="0"
+				   cornerRadius="20"
+				   borderWeight="4"
+				   borderColor="#ffffff" xmlns:components="game.components.*" >
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			
+			import spark.collections.Sort;
+			import spark.collections.SortField;
+			
+			import model.Player;
+			
+			import serviceProxy.PlayersProxy;
+			import serviceProxy.ProxyManager;
+			import serviceProxy.events.ServiceFaultEvent;
+			import serviceProxy.events.ServiceResultEvent;
+			
+			[Bindable]
+			public var playerScore:int;
+			[Bindable]
+			public var enemyKills:int;
+			
+			[Bindable]
+			public var newPlayer:Player;
+			
+			protected function cancel_clickHandler(event:MouseEvent):void
+			{
+				this.visible = this.includeInLayout = false;
+			}
+			
+			// submit score - add new player to service and display high scores
+			protected function submit_clickHandler(event:MouseEvent):void
+			{
+				var proxy:PlayersProxy = ProxyManager.instance[PlayersProxy] as PlayersProxy;
+				proxy.addEventListener(PlayersProxy.GET_PLAYERS_COUNT_RESULT, onPlayersCountResult);
+				proxy.addEventListener(PlayersProxy.GET_PLAYERS_COUNT_FAULT, onPlayersFaultHandler);
+				// call service to return the current number of players on server side
+				proxy.getNumberOfPlayers();
+			}
+			
+			// use the player count value from service to create new player
+			protected function onPlayersCountResult(ev:ServiceResultEvent):void
+			{
+				var proxy:PlayersProxy = ProxyManager.instance[PlayersProxy] as PlayersProxy;
+				proxy.removeGetPlayersCountListeners();
+				
+				// use this to set new player ID 
+				var playersNo:int = int (ev.result);
+				
+				newPlayer = new Player();
+				newPlayer.id = playersNo + 1;
+				newPlayer.name = playerName.text;
+				newPlayer.score = playerScore;
+				newPlayer.kills = enemyKills;
+				
+				proxy.addEventListener(PlayersProxy.ADD_PLAYER_RESULT, onSubmitScoreResult);
+				proxy.addEventListener(PlayersProxy.ADD_PLAYER_FAULT, onPlayersFaultHandler);
+				// create new player and post to service
+				proxy.addPlayer(newPlayer); 
+			}
+
+			protected function onSubmitScoreResult(ev:ServiceResultEvent):void
+			{
+				var proxy:PlayersProxy = ProxyManager.instance[PlayersProxy] as PlayersProxy;
+				proxy.removeAddPlayerListeners();
+				
+				// call service to  get all players
+				proxy.addEventListener(PlayersProxy.GET_ALL_PLAYERS_RESULT, onRestGetPlayersResult);
+				proxy.addEventListener(PlayersProxy.GET_ALL_PLAYERS_FAULT, onPlayersFaultHandler);
+				
+				proxy.getAllPlayers();
+			}
+			
+			protected function onRestGetPlayersResult(ev:ServiceResultEvent):void
+			{
+				(ProxyManager.instance[PlayersProxy] as PlayersProxy).removeGetAllPlayersListeners();
+				
+				// display high scores in dataGrid
+				highScores.visible = highScores.includeInLayout = true;
+				
+				// sort collection before setting it to the grid provider
+				var playersDP:ArrayCollection = ev.result as ArrayCollection;
+				
+				var sort:Sort = new Sort();
+				sort.fields = [new SortField("score", true)];
+				playersDP.sort = sort;
+				playersDP.refresh();
+				
+				var rowInd:int;
+				for each (var p:Object in playersDP)
+				{
+					if (p.id == newPlayer.id)
+					{
+						rowInd = playersDP.getItemIndex(p);
+						break;
+					}
+				}
+				
+				this.callLater(function():void {
+					for each (var pl:Object in playersDP)
+					{
+						// set player's ID for correct score position
+						pl.id = playersDP.getItemIndex(pl) + 1;
+					}
+				});
+				
+				// set grid data provider
+				highScores.scoresGrid.dataProvider = playersDP;
+				
+				// set newly added item as selected in grid
+				highScores.scoresGrid.setSelectedIndex(rowInd);
+				highScores.scoresGrid.ensureCellIsVisible(rowInd);
+			}
+			
+			protected function onPlayersFaultHandler(ev:ServiceFaultEvent):void
+			{
+				Alert.show(ev.message);
+				
+				if (ev.type == PlayersProxy.GET_PLAYERS_COUNT_FAULT)
+					(ProxyManager.instance[PlayersProxy] as PlayersProxy).removeGetPlayersCountListeners();
+				
+				if (ev.type == PlayersProxy.ADD_PLAYER_FAULT)
+					(ProxyManager.instance[PlayersProxy] as PlayersProxy).removeAddPlayerListeners();
+
+				if (ev.type == PlayersProxy.GET_ALL_PLAYERS_FAULT)
+					(ProxyManager.instance[PlayersProxy] as PlayersProxy).removeGetAllPlayersListeners();
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Style>
+		@namespace s "library://ns.adobe.com/flex/spark";
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		
+		.txtLbl
+		{
+			fontSize: 18;
+			color: #ffffff;
+			fontWeight: bold
+		}
+		.txtInputLbl
+		{
+			paddingLeft: 10;
+			paddingRight: 10;
+			fontSize: 17;
+			textAlign: left;
+			color: #000000;
+			fontWeight: bold
+		}
+		.btnLbl
+		{
+			borderColor: #000000;
+			borderThickness: 2;
+			borderVisible: true;
+			fontSize: 16;
+			fontWeight: bold;
+			color: #ffffff;
+			paddingBottom: 10;
+			paddingRight: 20;
+			paddingLeft: 20;
+			paddingTop: 10;
+			backgroundColor: #800000;
+			horizontalCenter: 0;
+		}
+		
+	</fx:Style>
+	
+	<s:backgroundFill>
+		<s:SolidColor alpha="0.9"
+					  color="#000000"/>
+	</s:backgroundFill>
+	
+	<s:HGroup id="playerData"
+			  gap="20"
+			  verticalAlign="middle"
+			  left="35"
+			  y="100" 
+			  visible="{!highScores.visible}"
+			  includeInLayout="{!highScores.visible}">
+		<s:Label id="nameLbl"
+				 text="Name"
+				 styleName="txtLbl" />
+		<s:TextInput id="playerName"
+					 prompt="Enter your name"
+					 width="200"
+					 height="{submit.height}"
+					 restrict="A-Z a-z 0-9"
+					 styleName="txtInputLbl"
+					 maxChars="25"/>
+	</s:HGroup>
+	
+	<s:VGroup id="btns"
+			  y="240"
+			  horizontalCenter="0"
+			  gap="20"
+			  height="150"
+			  visible="{!highScores.visible}"
+			  includeInLayout="{!highScores.includeInLayout}"
+			  textAlign="center">
+		
+		<s:Label id="submit"
+				 text="SUBMIT"
+				 styleName="btnLbl"
+				 useHandCursor="true"
+				 buttonMode="true"
+				 alpha="{playerName.text.length > 0 ? 1 : 0.3}"
+				 mouseEnabled="{playerName.text.length > 0}"
+				 width="{playerName.width}"
+				 click="submit_clickHandler(event)"/>
+		<s:Label id="cancel"
+				 text="CANCEL"
+				 styleName="btnLbl"
+				 useHandCursor="true"
+				 buttonMode="true"
+				 width="{playerName.width}"
+				 click="cancel_clickHandler(event)" />
+		
+	</s:VGroup>
+	
+	<components:HighScoresScreen id="highScores"
+								 visible="false"
+								 includeInLayout="false" />
+	
+</s:BorderContainer>

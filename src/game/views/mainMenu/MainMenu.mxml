@@ -5,6 +5,8 @@
 				   backgroundImageFillMode="scale"
 				   backgroundImage="{MAIN_MENU}" 
 				   xmlns:components="game.components.*"
+				   show="bordercontainer1_showHandler(event)"
+				   enterState="bordercontainer1_showHandler(event)"
 				   width="100%"
 				   height="100%" >
 	
@@ -60,7 +62,8 @@
 	<s:VGroup y="{this.height * 0.62}"
 			  gap="15" 
 			  horizontalCenter="0"
-			  textAlign="center" >
+			  textAlign="center"
+			  enabled="{!highScoresScreen.visible}">
 		
 		<s:Label id="play" 
 				 text="PLAY"
@@ -82,11 +85,21 @@
 				 text="VIEW HIGHSCORES"
 				 styleName="label"
 				 useHandCursor="true"
-				 buttonMode="true" />
+				 buttonMode="true"
+				 click="highscores_clickHandler(event)"/>
 	</s:VGroup>
 	
 	<components:GameInstructionsPanel id="instructionsPopUp"
 									  includeInLayout="false"
 									  visible="false"/>
+	
+	<components:HighScoresScreen id="highScoresScreen"
+								 width="52%"
+								 height="55%"
+								 verticalCenter="0"
+								 horizontalCenter="0"
+								 visible="false"
+								 includeInLayout="false" />
+								 
 	
 </s:BorderContainer>
