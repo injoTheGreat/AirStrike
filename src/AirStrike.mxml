@@ -56,7 +56,6 @@
 				 enterState="{SoundUtils.playMusic(Resources.GameOverSound, 1)}"/>-->
 	</s:states>
 	
-	
 	<gameplay:GamePanel id="gamePanel"
 						width="100%"
 						height="100%" 
