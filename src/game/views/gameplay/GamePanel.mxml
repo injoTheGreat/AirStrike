@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx"
+				   xmlns:components="game.components.*"
+				   click="onClick(event)" 
+				   mouseMove="onMouseMove(event)"
+				   mouseDown="onMouseDown(event)"
+				   mouseUp="onMouseUp(event)"
+				   initialize="onInit(event)"
+				   enterFrame="onEnterFrame(event)"
+				   creationComplete="onCreationComplete(event)" >
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Style>
+		@namespace s "library://ns.adobe.com/flex/spark";
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		
+		.playerEnergyBorder {
+			backgroundColor: #FFFFFF;
+			borderVisible: false;
+		}
+		.playerEnergy {
+			backgroundColor: #FF0000;
+			borderVisible: false;
+		}
+		.masterEnergy {
+			backgroundColor: #000000;
+			borderVisible: false;
+		}
+		
+		.gameScore {
+			color: #FFFFFF;
+			fontWeight: bold;
+			fontSize: 18;
+			right: 20;
+			top: 15; 
+		}
+		.gamePause {
+			backgroundColor: #000000;
+			color: #FFA500;
+			fontWeight: bold;
+			fontSize: 36;
+			paddingTop: 15; 
+			paddingBottom: 15;
+			paddingLeft: 25;
+			paddingRight: 25;
+			verticalCenter: 0;
+			horizontalCenter: 0;
+		}
+		.weaponInfo {
+			color: #FFFFFF;
+			fontSize: 15;
+			fontWeight: bold;
+		}
+		
+	</fx:Style>
+	
+	<fx:Script source="gamePanel.as"/>
+	
+	<s:HGroup id="gameInfo"
+			  top="10"
+			  left="20" 
+			  gap="20"
+			  verticalAlign="middle" >
+		
+		<components:SoundComponent id="gameSound"
+								   includeSfxBtn="true"
+								   mouseOver="{Mouse.show()}"
+								   mouseOut="{Mouse.hide()}" />
+		
+		<s:HGroup id="playerEnergyInfo"
+				  width="160"
+				  gap="5"
+				  verticalAlign="middle" >
+			<s:Image id="energyImg" 
+					 source="{PLAYER_ENERGY}"
+					 scaleMode="letterbox" 
+					 smoothingQuality="high"
+					 width="25" 
+					 height="25" 
+					 smooth="true" />
+			<s:BorderContainer id="playerEnergyBorder"
+							   width="100%"
+							   height="20" 
+							   styleName="playerEnergyBorder">
+				<s:BorderContainer id="playerEnergy"
+								   height="20"
+								   styleName="playerEnergy"
+								   width="{playerEnergyBorder.width * MainManager.inst.player.energy}" />
+			</s:BorderContainer>
+			
+		</s:HGroup>
+		<s:HGroup id="masterEnemyEnergy"
+				  width="160"
+				  gap="5"
+				  verticalAlign="middle"
+				  visible="{MainManager.inst.masterEnemy != null}"
+				  includeInLayout="{MainManager.inst.masterEnemy != null}" >
+			<s:Image id="enemyEnergyImg" 
+					 source="{MASTER_ENERGY}"
+					 scaleMode="zoom" 
+					 smoothingQuality="high"
+					 width="35" 
+					 height="30" 
+					 smooth="true" />
+			<s:BorderContainer id="masterEnergyBorder"
+							   width="100%"
+							   height="21"
+							   styleName="playerEnergyBorder">
+				<s:BorderContainer id="masterEnergy" 
+								   height="22"
+								   styleName="masterEnergy"
+								   width="{masterEnergyBorder.width * MainManager.inst.masterEnemy.energy}" />
+			</s:BorderContainer>
+			
+		</s:HGroup>
+		
+		<s:HGroup id="playerWeaponInfo"
+				  gap="5"
+				  verticalAlign="middle" >
+			
+			<s:Image id="playerWeapon"
+					 scaleMode="stretch"
+					 smoothingQuality="high" 
+					 smooth="true"
+					 width="18"
+					 height="18"
+					 source="{_weaponImage}" />
+			<s:Label id="weaponAmmo"
+					 text="x{MainManager.inst.player.weapon.ammunition}"
+					 styleName="weaponInfo"/>
+			
+			<s:Image id="missileWeapon"
+					 scaleMode="stretch"
+					 smoothingQuality="high" 
+					 smooth="true"
+					 width="14"
+					 height="18"
+					 source="{ROCKET_WEAPON}" 
+					 visible="{_rocketWeaponEnabled}"
+					 includeInLayout="{_rocketWeaponEnabled}"/>
+			<s:Label id="missileAmmo"
+					 text="x{MainManager.inst.missileWeapon.ammunition}"
+					 styleName="weaponInfo" 
+					 visible="{_rocketWeaponEnabled}"
+					 includeInLayout="{_rocketWeaponEnabled}"/>
+			
+		</s:HGroup>
+		
+	</s:HGroup>
+	
+	<s:Label id="gameScore"
+			 styleName="gameScore"
+			 text="Score: {MainManager.inst.score} Kills: {MainManager.inst.kills}" />
+	
+	<s:Label id="gamePause"
+			 styleName="gamePause"
+			 text="GAME PAUSED"
+			 includeInLayout="{_gamePaused}"
+			 visible="{_gamePaused}" />
+	
+	<!--<components:GameOverScreen id="gameOver"
+							   includeInLayout="{MainManager.inst.gameOver}"
+							   visible="{MainManager.inst.gameOver}"/>-->
+	
+</mx:Canvas>

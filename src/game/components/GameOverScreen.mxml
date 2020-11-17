@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009"
+				   xmlns:s="library://ns.adobe.com/flex/spark"
+				   xmlns:mx="library://ns.adobe.com/flex/mx"
+				   xmlns:components="game.components.*"
+				   borderVisible="true"
+				   verticalCenter="0"
+				   horizontalCenter="0"
+				   cornerRadius="20"
+				   borderWeight="4"
+				   borderColor="#ffffff"
+				   width="50%"
+				   height="55%"
+				   visible="{MainManager.inst.gameOver}"
+				   includeInLayout="{MainManager.inst.gameOver}"
+				   show="showHandler(event)" >
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			import game.MainManager;
+			import game.Resources;
+			import game.utils.SoundUtils;
+			
+			private static const STATISTICS_LABEL:String = "Statistics: \n\n";
+			
+			protected function showHandler(event:FlexEvent):void
+			{
+				//stop gameplay sound
+				SoundUtils.stop();
+				// play duel music sound
+				SoundUtils.playMusic(Resources.GameOverSound, 1);
+				
+				// enable Mouse
+				Mouse.show();
+				
+				accuracy.text = "Accuracy: " + Math.round((MainManager.inst.shotsHit/MainManager.inst.shotsFired)*100).toString() + "%";
+			}
+			
+			protected function menu_clickHandler(event:MouseEvent):void
+			{
+				// navigate to MainMenu view state 
+				parentApplication.setCurrentState("mainMenu", false);
+			}
+			
+			// display Submit score screen
+			protected function submit_clickHandler(event:MouseEvent):void
+			{
+				addPlayerScreen.visible = addPlayerScreen.includeInLayout = true;
+				
+				addPlayerScreen.playerScore = MainManager.inst.score;
+				addPlayerScreen.enemyKills = MainManager.inst.kills;
+				
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Style>
+		@namespace s "library://ns.adobe.com/flex/spark";
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		
+		.label1
+		{
+			fontWeight: bold;
+			fontSize: 24;
+			color: #FF0000;
+			horizontalCenter: 0
+		}
+		.txtLbl
+		{
+			paddingLeft: 20;
+			fontSize: 18;
+			color: #ffffff;
+			fontWeight: bold
+		}
+		.btnLbl
+		{
+			borderColor: #000000;
+			borderThickness: 2;
+			borderVisible: true;
+			fontSize: 18;
+			fontWeight: bold;
+			color: #ffffff;
+			paddingBottom: 10;
+			paddingRight: 20;
+			paddingLeft: 20;
+			paddingTop: 10;
+			backgroundColor: #800000;
+			horizontalCenter: 0
+		}
+		
+	</fx:Style>
+	
+	<s:backgroundFill>
+		<s:SolidColor alpha="0.9"
+					  color="#000000"/>
+	</s:backgroundFill>
+	
+	<s:Label id="title"
+			 y="20"
+			 text="GAME OVER" 
+			 styleName="label1"/>
+	
+	<s:VGroup id="statistics"
+			  gap="15"
+			  y="80" >
+		<s:Label id="statTitle"
+				 text="{STATISTICS_LABEL}"
+				 color="#FFA500"
+				 styleName="txtLbl" />
+		<s:Label id="score"
+				 text="Game Score: {MainManager.inst.score}"
+				 styleName="txtLbl" />
+		<s:Label id="enemies"
+				 text="Enemies Destroyed: {MainManager.inst.kills} / {MainManager.inst.enemyCount}"
+				 styleName="txtLbl" />
+		<s:Label id="shotsFired"
+				 text="Shots Fired: {MainManager.inst.shotsFired}"
+				 styleName="txtLbl" />
+		<s:Label id="shotsHit"
+				 text="Shots Hit: {MainManager.inst.shotsHit}"
+				 styleName="txtLbl" />
+		<s:Label id="accuracy"
+				 visible="{MainManager.inst.shotsFired > 0}"
+				 styleName="txtLbl" />
+	</s:VGroup>
+	
+	<s:VGroup id="btns"
+			  y="320"
+			  horizontalCenter="0"
+			  gap="20"
+			  height="150"
+			  textAlign="center">
+		
+		<s:Label id="menu"
+				 text="MENU"
+				 width="{submit.width}"
+				 styleName="btnLbl"
+				 useHandCursor="true"
+				 buttonMode="true"
+				 click="menu_clickHandler(event)"/>
+		<s:Label id="submit"
+				 text="SUBMIT SCORE"
+				 styleName="btnLbl"
+				 useHandCursor="true"
+				 buttonMode="true"
+				 click="submit_clickHandler(event)" />
+		
+	</s:VGroup>
+	
+	<components:SubmitScoreScreen id="addPlayerScreen"
+								  visible="false"
+								  includeInLayout="false"
+								  width="{this.width * 0.8}"
+								  height="{this.height * 0.8}" />
+	
+</s:BorderContainer>

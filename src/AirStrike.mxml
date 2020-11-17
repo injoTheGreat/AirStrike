@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009"
+						xmlns:mx="library://ns.adobe.com/flex/mx"
+						xmlns:s="library://ns.adobe.com/flex/spark"
+						xmlns:mainMenu="game.views.mainMenu.*"
+						xmlns:preloader="game.views.preloader.*"
+						xmlns:components="game.components.*"
+						xmlns:gameplay="game.views.gameplay.*"
+						showStatusBar="false"
+						initialize="onAppInitialize(event)">
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			import game.MainManager;
+			import game.Resources;
+			import game.levels.Level1;
+			import game.utils.SoundUtils;
+			
+			import serviceProxy.PlayersProxy;
+			import serviceProxy.ProxyManager;
+			
+			protected function exitStateHandler(event:FlexEvent):void
+			{
+				SoundUtils.stop();
+				
+				// set new instances
+				Level1.setInst();
+				MainManager.setInst();
+				
+				this.gamePanel.gameStarted = false;
+			}
+			
+			protected function onAppInitialize(event:FlexEvent):void
+			{
+				ProxyManager.instance.registerServiceProxy(new PlayersProxy());
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<s:states>
+		<s:State name="loading" 
+				 enterState="{SoundUtils.playSFX(Resources.GameLoadSound)}"/>
+		<s:State name="mainMenu"
+				 enterState="{SoundUtils.playMusic(Resources.MainMenuGameSound)}"
+				 exitState="{SoundUtils.stop()}" />
+		<s:State name="gameplay"
+				 enterState="{SoundUtils.playMusic(Resources.GameplaySound)}"
+				 exitState="exitStateHandler(event)"/>
+		<!--<s:State name="gameover" 
+				 enterState="{SoundUtils.playMusic(Resources.GameOverSound, 1)}"/>-->
+	</s:states>
+	
+	<gameplay:GamePanel id="gamePanel"
+						width="100%"
+						height="100%" 
+						excludeFrom="loading, mainMenu"
+						enabled="{!gameover.visible}"
+						itemDestructionPolicy="auto"/>
+	
+	<components:GameOverScreen id="gameover"
+							   excludeFrom="loading, mainMenu" 
+							   itemDestructionPolicy="auto"/>
+	
+	<mainMenu:MainMenu id="mainMenu"
+					   excludeFrom="loading, gameplay" />
+	
+	<preloader:CustomPreloader id="preloader"
+							   excludeFrom="mainMenu, gameplay"/>
+	
+</s:WindowedApplication>

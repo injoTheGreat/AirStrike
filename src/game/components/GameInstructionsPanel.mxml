@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009"
+				   xmlns:s="library://ns.adobe.com/flex/spark"
+				   xmlns:mx="library://ns.adobe.com/flex/mx"
+				   borderVisible="true"
+				   verticalCenter="0"
+				   horizontalCenter="0"
+				   cornerRadius="20"
+				   borderWeight="4"
+				   borderColor="#ffffff"
+				   width="620"
+				   height="550" >
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Style>
+		@namespace s "library://ns.adobe.com/flex/spark";
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		
+		.titleLbl
+		{
+			fontWeight: bold;
+			fontSize: 18;
+			fontStyle: italic;
+			color: #FFA500;
+			paddingLeft: 40;
+		}
+		
+		.controlsLbl
+		{
+			paddingLeft: 20;
+			fontSize: 16;
+			fontWeight: bold
+		}
+		
+		.closeLbl
+		{
+			fontSize: 18;
+			fontWeight: bold;
+			color: #ffffff;
+			paddingBottom: 10;
+			paddingRight: 20;
+			paddingLeft: 20;
+			paddingTop: 10;
+			backgroundColor: #800000;
+			horizontalCenter: 0
+		}
+		
+	</fx:Style>
+	<fx:Script >
+		<![CDATA[
+			import game.Resources;
+			
+			private static const CONTROLS_INFO:String = "Control your plane using the mouse.\nUse the LEFT MOUSE BUTTON or [Ctrl] to shot your machine guns.\nUse the SPACE BAR for missile launch.";
+			private static const KEY_CONTROLS_INFO:String = "Use [1], [2], [3] to switch between weapons.\n" + 
+															"Use [P] to (un)pause the game.\n" + 
+															"Use [M] to (un)mute game sounds.\n";
+			private static const WEAPON_2_BULLETS_ITEM_INFO:String = "weapon with 2 bullets";
+			private static const WEAPON_3_BULLETS_ITEM_INFO:String = "weapon with 3 bullets";
+			private static const AMMUNITION_ITEM_INFO:String = "reload current weapon ammunition";
+			private static const HELP_ITEM_INFO:String = "refill player energy";
+			private static const MISSILE_ITEM_INFO:String = "missile weapon to easy kill enemies";
+		]]>
+	</fx:Script>
+	
+	<s:backgroundFill >
+		<s:SolidColor alpha="0.9"
+					  color="#000000"/>
+	</s:backgroundFill>
+	
+	<s:Label id="title"
+			 y="20"
+			 text="INSTRUCTIONS" 
+			 styleName="titleLbl"/>
+	
+	<s:VGroup id="controlsGroup"
+			  gap="30" 
+			  y="60">
+		<s:VGroup gap="10">
+			<s:Label id="controls"
+					 text="Controls"
+					 color="#FF0000"
+					 styleName="controlsLbl" />
+			
+			<s:Label id="controlTextLbl"
+					 color="#ffffff"
+					 text="{CONTROLS_INFO}"
+					 styleName="controlsLbl"/>
+		</s:VGroup>
+		<s:VGroup gap="10">
+			<s:Label id="keyControls"
+					 text="Key Controls"
+					 color="#FF0000"
+					 styleName="controlsLbl" />
+			
+			<s:Label id="keyControlsTextLbl"
+					 color="#ffffff"
+					 text="{KEY_CONTROLS_INFO}"
+					 styleName="controlsLbl"/>
+		</s:VGroup>
+		<s:VGroup gap="10">
+			<s:Label id="pickUpItems"
+					 text="Pick-up items"
+					 color="#FF0000"
+					 styleName="controlsLbl" />
+			<s:HGroup gap="10"  
+					  paddingLeft="20" 
+					  verticalAlign="middle">
+				<s:BitmapImage id="weapon2BulletsItem" 
+							   width="25" 
+							   height="25"
+							   source="{Resources.Weapon2BulletsItem.bitmap}" />
+				<s:Label id="weapon2BulletsLbl"
+						 color="#ffffff"
+						 styleName="controlsLbl"
+						 text="{WEAPON_2_BULLETS_ITEM_INFO}" />
+			</s:HGroup>
+			<s:HGroup gap="10"  
+					  paddingLeft="20" 
+					  verticalAlign="middle">
+				<s:BitmapImage id="weapon3BulletsItem" 
+							   width="25" 
+							   height="25"
+							   source="{Resources.Weapon3BulletsItem.bitmap}" />
+				<s:Label id="weapon3BulletsLbl"
+						 color="#ffffff"
+						 styleName="controlsLbl"
+						 text="{WEAPON_3_BULLETS_ITEM_INFO}" />
+			</s:HGroup>
+			<s:HGroup gap="10"  
+					  paddingLeft="20" 
+					  verticalAlign="middle">
+				<s:BitmapImage id="ammoItem" 
+							   width="25" 
+							   height="25"
+							   source="{Resources.AmmoBoxItem.bitmap}" />
+				<s:Label id="ammoLbl"
+						 color="#ffffff"
+						 styleName="controlsLbl"
+						 text="{AMMUNITION_ITEM_INFO}" />
+			</s:HGroup>
+			<s:HGroup gap="10"  
+					  paddingLeft="20" 
+					  verticalAlign="middle">
+				<s:BitmapImage id="helpItem" 
+							   width="25" 
+							   height="25"
+							   source="{Resources.HelpItem.bitmap}" />
+				<s:Label id="helpItemLbl"
+						 color="#ffffff"
+						 styleName="controlsLbl"
+						 text="{HELP_ITEM_INFO}" />
+			</s:HGroup>
+			<s:HGroup gap="10"  
+					  paddingLeft="20" 
+					  verticalAlign="middle" >
+				<s:BitmapImage id="missileItem" 
+							   width="25" 
+							   height="25"
+							   source="{Resources.MissileItem.bitmap}" />
+				<s:Label id="missileItemLbl"
+						 color="#ffffff"
+						 styleName="controlsLbl"
+						 text="{MISSILE_ITEM_INFO}" />
+			</s:HGroup>
+		</s:VGroup>
+		
+	</s:VGroup>
+	
+	<s:Label id="close"
+			 y="500"
+			 text="CLOSE"
+			 useHandCursor="true"
+			 buttonMode="true"
+			 click="{this.visible = this.includeInLayout = false}"
+			 styleName="closeLbl"/>
+	
+</s:BorderContainer>

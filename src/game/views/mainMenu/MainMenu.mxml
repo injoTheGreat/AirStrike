@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx"
+				   backgroundImageFillMode="scale"
+				   backgroundImage="{MAIN_MENU}" 
+				   xmlns:components="game.components.*"
+				   show="bordercontainer1_showHandler(event)"
+				   enterState="bordercontainer1_showHandler(event)"
+				   width="100%"
+				   height="100%" >
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Style>
+		@namespace s "library://ns.adobe.com/flex/spark";
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		
+		.title
+		{
+			fontFamily: Impact;
+			fontSize: 95;
+			fontWeight: bold;
+			fontStyle: italic;
+			color: #800000;
+			horizontalCenter: 0
+		}
+		
+		.label
+		{
+			borderColor: #000000;
+			borderThickness: 2;
+			borderVisible: true;
+			backgroundColor: #800000;
+			paddingBottom: 10;
+			paddingTop: 10;
+			paddingLeft: 20;
+			paddingRight: 20;
+			fontSize: 18;
+			fontWeight: bold;
+			color: #ffffff;
+		}
+		
+	</fx:Style>
+	
+	<fx:Script source="mainMenu.as"/>
+	
+	<components:SoundComponent id="sound"
+							   top="10"
+							   left="20" />
+	
+	<s:Label id="gameTitle"
+			 text="AIR STRIKE"
+			 styleName="title"
+			 paddingBottom="10"
+			 paddingTop="10"
+			 paddingLeft="20"
+			 paddingRight="20"
+			 y="{this.height * 0.07}"/>
+	
+	<s:VGroup y="{this.height * 0.41}"
+			  gap="15" 
+			  horizontalCenter="0"
+			  textAlign="center"
+			  enabled="{!highScoresScreen.visible}">
+		
+		<s:Label id="play" 
+				 text="PLAY"
+				 styleName="label"
+				 useHandCursor="true"
+				 buttonMode="true"
+				 width="{instructions.width}"
+				 click="startGame(event)" />
+		
+		<s:Label id="instructions" 
+				 text="INSTRUCTIONS"
+				 styleName="label"
+				 width="{highscores.width}"
+				 useHandCursor="true"
+				 buttonMode="true"
+				 click="{instructionsPopUp.visible = instructionsPopUp.includeInLayout = true}" />
+		
+		<s:Label id="highscores"
+				 text="VIEW HIGHSCORES"
+				 styleName="label"
+				 useHandCursor="true"
+				 buttonMode="true"
+				 click="highscores_clickHandler(event)"/>
+	</s:VGroup>
+	
+	<components:GameInstructionsPanel id="instructionsPopUp"
+									  includeInLayout="false"
+									  visible="false"/>
+	
+	<components:HighScoresScreen id="highScoresScreen"
+								 width="52%"
+								 height="55%"
+								 verticalCenter="0"
+								 horizontalCenter="0"
+								 visible="false"
+								 includeInLayout="false" />
+								 
+	
+</s:BorderContainer>
