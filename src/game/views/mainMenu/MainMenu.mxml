@@ -57,9 +57,9 @@
 			 paddingTop="10"
 			 paddingLeft="20"
 			 paddingRight="20"
-			 y="{this.height * 0.1}"/>
+			 y="{this.height * 0.07}"/>
 	
-	<s:VGroup y="{this.height * 0.62}"
+	<s:VGroup y="{this.height * 0.41}"
 			  gap="15" 
 			  horizontalCenter="0"
 			  textAlign="center"

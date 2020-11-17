@@ -13,7 +13,7 @@ import serviceProxy.ProxyManager;
 import serviceProxy.events.ServiceFaultEvent;
 import serviceProxy.events.ServiceResultEvent;
 
-[Embed(source="/assets/images/mainmenu.png")]
+[Embed(source="/assets/images/airplanes/main_menu_1.png")]
 private static const mainMenu:Class;
 
 private static const MAIN_MENU:Bitmap = new mainMenu();
