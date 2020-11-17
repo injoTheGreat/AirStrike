@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
-<application xmlns="http://ns.adobe.com/air/application/15.0">
+<application xmlns="http://ns.adobe.com/air/application/26.0">
 
 <!-- Adobe AIR Application Descriptor File Template.
 
@@ -37,7 +37,7 @@
 	<!-- <description></description> -->
 
 	<!-- Copyright information. Optional -->
-	<copyright>© 2015 Nikola Milic - Institut za matematiku i informatiku. All rights reserved</copyright>
+	<copyright>© 2019 Nikola Milic - Institut za matematiku i informatiku. All rights reserved</copyright>
 
 	<!-- Publisher ID. Used if you're updating an application created prior to 1.5.3 -->
 	<!-- <publisherID></publisherID> -->
@@ -64,7 +64,7 @@
 		<minimizable>false</minimizable>
 
 		<!-- Whether the user can maximize the window. Optional. Default true. -->
-		<maximizable>false</maximizable>
+		<maximizable>true</maximizable>
 
 		<!-- Whether the user can resize the window. Optional. Default true. -->
 		<resizable>false</resizable>
@@ -73,7 +73,7 @@
 		<width>1180</width>
 
 		<!-- The window's initial height in pixels. Optional. -->
-		<height>850</height>
+		<height>845</height>
 
 		<!-- The window's initial x position. Optional. -->
 		<x>150</x>
@@ -141,7 +141,7 @@
 <!-- 		<image57x57></image57x57> -->
 <!-- 		<image72x72></image72x72> -->
 <!-- 		<image114x114></image114x114> -->
-		<image128x128>appIcon.png</image128x128>
+		<image128x128>appIcon128.png</image128x128>
 <!-- 		<image144x144></image144x144> -->
 	</icon>
 
